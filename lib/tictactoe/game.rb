@@ -1,13 +1,17 @@
 module TicTacToe
-  module Game
-    extend self
-    
-    def play
-      board = [[nil, nil, nil],
+  class Game
+   
+    def initialize
+      @board = [[nil, nil, nil],
                [nil, nil, nil],
                [nil, nil, nil]]
                
-      players = [:X, :O].cycle
+      @players = [:X, :O].cycle
+    end
+    
+    attr_reader :board, :players
+    
+    def play
 
       left_diagonal = [[0,0], [1,1], [2,2]]
       right_diagonal = [[0,2], [1,1], [2,0]]
