@@ -9,59 +9,94 @@ module TicTacToe
       @players = [:X, :O].cycle
     end
     
-    attr_reader :board, :players
+    attr_reader :board, :players, :current_player
     
     def play
-
-      left_diagonal = [[0,0], [1,1], [2,2]]
-      right_diagonal = [[0,2], [1,1], [2,0]]
-
-      current_player = players.next
+      start_new_turn
 
       loop do
-        puts board.map {|row| row.map { |e| e || " "}.join("|")}.join("\n")
-        print "\n>> "
-        row, col = gets.split.map { |e| e.to_i }
-        puts
-        begin
-          cell_contents = board.fetch(row).fetch(col)
-        rescue IndexError
-          puts "Out of bounds, try again"
-          next
-        end
-        
-        if cell_contents
-          puts "Cell occupied, please try another position"
-          next
-        end
+        display_board
+
+        row, col = move_input
+        next unless valid_move?(row, col)
         
         board[row][col] = current_player
         
-        lines = []
-        
-        [left_diagonal, right_diagonal].each do |line|
-          lines << line if line.include?([row, col])
-        end
-           
-        lines << (0..2).map { |c1| [row, c1] }
-        lines << (0..2).map { |r1| [r1, col] }
-        
-        win = lines.any? do |line|
-          line.all? { |row, col| board[row][col] == current_player }
-        end
-        
-        if win
+        if winning_move?(row, col)
           puts "#{current_player} wins!"
-          exit
+          return
         end
-        
-        if board.flatten.compact.length == 9
-          puts "It's a draw"
-          exit
+
+        if draw?
+          puts "It's a draw!"
+          return
         end
-        
-        current_player = players.next
+
+        start_new_turn
       end
     end
+
+
+    # Make next move
+    def start_new_turn
+      @current_player = @players.next
+    end
+
+    # Display the updated board after every move
+    def display_board
+      puts board.map { |row| row.map { |e| e || " " }.join("|") }.join("\n")
+    end
+
+    # Taking the user input
+    def move_input
+      print "\n>> "
+      row, col = gets.split.map { |e| e.to_i }
+      puts
+
+      [row, col]
+    end
+
+    # Check if move is valid
+    def valid_move?(row, col)
+      begin
+        cell_contents = board.fetch(row).fetch(col)
+      rescue IndexError
+        puts "Out of bounds, try another position"
+        return false
+      end
+
+      if cell_contents
+        puts "Cell occupied, try another position"
+        return false
+      end
+
+      true
+    end
+
+    # Check if move entered wins the game
+    def winning_move?(row, col)
+      left_diagonal = [[0,0], [1,1], [2,2]]
+      right_diagonal = [[0,2], [1,1], [2,0]]
+
+      lines = []
+      
+      [left_diagonal, right_diagonal].each do |line|
+        lines << line if line.include?([row, col])
+      end
+
+      lines << (0..2).map { |i| [row, i] }
+      lines << (0..2).map { |i| [i, col] }
+
+      lines.any? do |line|
+        line.all? { |row, col| board[row][col] == current_player }
+      end
+    end
+
+    # Check if match is a tie
+    def draw?
+      board.flatten.compact.length == 9
+    end
+
+
   end
 end         
